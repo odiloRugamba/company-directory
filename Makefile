@@ -7,6 +7,17 @@ down:
 build:
 	docker compose build --no-cache
 
+# First-time setup: build images, install deps, generate key, run migrations
+setup:
+	docker compose build --no-cache
+	docker compose up -d
+	docker compose exec app composer install --no-interaction --prefer-dist --optimize-autoloader
+	docker compose exec node npm ci
+	docker compose exec app php artisan key:generate
+	docker compose exec app php artisan migrate --force
+	docker compose exec node npm run build
+	@echo "\n✅  SANIA is ready at http://localhost:8080\n"
+
 shell:
 	docker compose exec app bash
 
