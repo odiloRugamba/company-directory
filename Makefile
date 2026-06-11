@@ -13,10 +13,9 @@ setup:
 	docker compose up -d
 	docker compose exec -u root app composer install --no-interaction --prefer-dist --optimize-autoloader
 	docker compose exec -u root app chown -R www:www /var/www
-	docker compose exec node npm ci
+	docker compose run --rm node sh -c "npm ci && npm run build"
 	docker compose exec app php artisan key:generate
 	docker compose exec app php artisan migrate --force
-	docker compose exec node npm run build
 	@echo "\n✅  SANIA is ready at http://localhost:8080\n"
 
 shell:
