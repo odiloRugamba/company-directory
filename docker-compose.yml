@@ -1,0 +1,90 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: sania_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - ./docker/app/php.ini:/usr/local/etc/php/conf.d/local.ini
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - sania
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: sania_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - sania
+
+  mysql:
+    image: mysql:8.0
+    container_name: sania_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: sania
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_USER: sania
+      MYSQL_PASSWORD: secret
+    volumes:
+      - sania_mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - sania
+
+  redis:
+    image: redis:7-alpine
+    container_name: sania_redis
+    restart: unless-stopped
+    networks:
+      - sania
+
+  node:
+    image: node:20-alpine
+    container_name: sania_node
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "5173:5173"
+    networks:
+      - sania
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    container_name: sania_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - sania
+
+networks:
+  sania:
+    driver: bridge
+
+volumes:
+  sania_mysql_data:

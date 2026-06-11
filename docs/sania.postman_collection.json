@@ -1,0 +1,153 @@
+{
+    "info": {
+        "name": "SANIA API v1",
+        "description": "Africa's Startup Ecosystem Platform — REST API v1",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        { "key": "base_url", "value": "http://localhost:8080/api/v1" },
+        { "key": "token", "value": "" }
+    ],
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/register",
+                        "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test Startup\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\",\n  \"role\": \"startup\"\n}" }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [{ "listen": "test", "script": { "exec": ["const r = pm.response.json(); if (r.meta && r.meta.token) pm.collectionVariables.set('token', r.meta.token);"] } }],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/login",
+                        "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"email\": \"startup@demo.com\",\n  \"password\": \"password\"\n}" }
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/logout",
+                        "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Incubators (Public)",
+            "item": [
+                {
+                    "name": "List Incubators",
+                    "request": {
+                        "method": "GET",
+                        "url": { "raw": "{{base_url}}/incubators?country=RW&sector=fintech&per_page=10", "host": ["{{base_url}}"], "path": ["incubators"], "query": [{ "key": "country", "value": "RW" }, { "key": "sector", "value": "fintech" }, { "key": "per_page", "value": "10" }] },
+                        "header": [{ "key": "Accept", "value": "application/json" }]
+                    }
+                },
+                {
+                    "name": "Get Incubator by Slug",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/incubators/hanga-hub",
+                        "header": [{ "key": "Accept", "value": "application/json" }]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Startups (Public)",
+            "item": [
+                {
+                    "name": "List Startups",
+                    "request": {
+                        "method": "GET",
+                        "url": { "raw": "{{base_url}}/startups?sector=fintech&stage=mvp", "host": ["{{base_url}}"], "path": ["startups"], "query": [{ "key": "sector", "value": "fintech" }, { "key": "stage", "value": "mvp" }] },
+                        "header": [{ "key": "Accept", "value": "application/json" }]
+                    }
+                },
+                {
+                    "name": "Get Startup by Slug",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/startups/demostartup",
+                        "header": [{ "key": "Accept", "value": "application/json" }]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Sectors (Public)",
+            "item": [
+                {
+                    "name": "List All Sectors",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/sectors",
+                        "header": [{ "key": "Accept", "value": "application/json" }]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Me (Authenticated)",
+            "item": [
+                {
+                    "name": "Get My Profile",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/me",
+                        "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }]
+                    }
+                },
+                {
+                    "name": "Update My Profile",
+                    "request": {
+                        "method": "PUT",
+                        "url": "{{base_url}}/me/profile",
+                        "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"tagline\": \"Building the future of fintech in Africa\",\n  \"team_size\": 5\n}" }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Applications (Authenticated)",
+            "item": [
+                {
+                    "name": "Submit Application",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/applications",
+                        "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"incubator_id\": 2,\n  \"motivation\": \"We are applying because we believe your mentorship network will help us scale. Our fintech solution serves 500+ users and we need guidance on fundraising and market expansion across East Africa.\"\n}" }
+                    }
+                },
+                {
+                    "name": "List My Applications",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/applications",
+                        "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }]
+                    }
+                },
+                {
+                    "name": "Update Application Status (Incubator)",
+                    "request": {
+                        "method": "PATCH",
+                        "url": "{{base_url}}/applications/1/status",
+                        "header": [{ "key": "Accept", "value": "application/json" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"status\": \"accepted\",\n  \"reviewer_notes\": \"Strong team with a clear path to market. Accepted for the next cohort.\"\n}" }
+                    }
+                }
+            ]
+        }
+    ]
+}

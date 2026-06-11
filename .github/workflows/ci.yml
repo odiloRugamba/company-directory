@@ -1,0 +1,59 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: sania_test
+          MYSQL_ROOT_PASSWORD: secret
+        ports: ['3306:3306']
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, redis
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Setup environment
+        run: |
+          cp .env.example .env.testing
+          sed -i 's/DB_HOST=mysql/DB_HOST=127.0.0.1/' .env.testing
+          sed -i 's/DB_DATABASE=sania/DB_DATABASE=sania_test/' .env.testing
+          sed -i 's/REDIS_HOST=redis/REDIS_HOST=127.0.0.1/' .env.testing
+          sed -i 's/CACHE_STORE=redis/CACHE_STORE=array/' .env.testing
+          sed -i 's/SESSION_DRIVER=redis/SESSION_DRIVER=array/' .env.testing
+          sed -i 's/QUEUE_CONNECTION=redis/QUEUE_CONNECTION=sync/' .env.testing
+          php artisan key:generate --env=testing
+
+      - name: Run migrations
+        run: php artisan migrate --env=testing
+
+      - name: Run tests
+        run: php artisan test --parallel
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run lint
