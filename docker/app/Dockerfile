@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
-
 RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
+
+WORKDIR /var/www
+RUN chown -R www:www /var/www
+
 USER www

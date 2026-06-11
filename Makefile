@@ -11,7 +11,8 @@ build:
 setup:
 	docker compose build --no-cache
 	docker compose up -d
-	docker compose exec app composer install --no-interaction --prefer-dist --optimize-autoloader
+	docker compose exec -u root app composer install --no-interaction --prefer-dist --optimize-autoloader
+	docker compose exec -u root app chown -R www:www /var/www
 	docker compose exec node npm ci
 	docker compose exec app php artisan key:generate
 	docker compose exec app php artisan migrate --force
